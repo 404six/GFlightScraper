@@ -15,7 +15,8 @@ def make_post_request(url, payload):
     try:
         response = requests.post(url, data=payload, headers=DEFAULT_HEADERS)
         response.raise_for_status()
-        return response.text
+        return response.text.strip().replace(")]}'", "")
+
     except requests.exceptions.RequestException as e:
         print(f"Error making POST request: {e}")
         return None
