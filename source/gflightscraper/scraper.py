@@ -1,12 +1,12 @@
 import json
 from collections import namedtuple
+from gflightscraper.config import GOOGLE_FLIGHTS_API_URL
 from gflightscraper.utils.api_utils import make_post_request
 from gflightscraper.utils.date_utils import calculate_date_ranges
 from unidecode import unidecode
 
 class Scraper:
     def __init__(self):
-        self.API = "https://www.google.com/_/FlightsFrontendUi/data/"
         self.list = []
         self.flight = namedtuple('Flight', ['origin', 'destination', 'date_from', 'date_to', 'price', 'duration', 'passengers'])
         self.departure = namedtuple('Departure', ['code', 'price', 'airline', 'stops_count', 'stops_list'])
@@ -31,7 +31,7 @@ class Scraper:
         self.destination = self.__get_city_by_iata(destination_iata)
         for start, end in date_ranges:
             payload = f"f.req=%5Bnull%2C%22%5Bnull%2C%5Bnull%2Cnull%2C1%2Cnull%2C%5B%5D%2C1%2C%5B{passengers}%2C0%2C0%2C0%5D%2Cnull%2Cnull%2Cnull%2Cnull%2Cnull%2Cnull%2C%5B%5B%5B%5B%5B%5C%22%2Fm%2F{self.origin.code}%5C%22%2C4%5D%5D%5D%2C%5B%5B%5B%5C%22%2Fm%2F{self.destination.code}%5C%22%2C4%5D%5D%5D%2Cnull%2C0%5D%2C%5B%5B%5B%5B%5C%22%2Fm%2F{self.destination.code}%5C%22%2C4%5D%5D%5D%2C%5B%5B%5B%5C%22%2Fm%2F{self.origin.code}%5C%22%2C4%5D%5D%5D%2Cnull%2C0%5D%5D%2Cnull%2Cnull%2Cnull%2C1%5D%2C%5B%5C%22{start}%5C%22%2C%5C%22{end}%5C%22%5D%2Cnull%2C%5B{duration}%2C{duration}%5D%5D%22%5D"
-            response = make_post_request(f"{self.API}travel.frontend.flights.FlightsFrontendService/GetCalendarPicker", payload)
+            response = make_post_request(f"{GOOGLE_FLIGHTS_API_URL}travel.frontend.flights.FlightsFrontendService/GetCalendarPicker", payload)
             self.__parse_flights(response, duration, passengers)
 
         self.list.sort(key=lambda x: x.price)
@@ -65,7 +65,7 @@ class Scraper:
             namedtuple: A namedtuple containing the city name, code, and IATA code.
         """
         payload = f"f.req=%5B%5B%5B%22H028ib%22%2C%22%5B%5C%22{iata_or_name}%5C%22%2C%5B1%2C2%2C3%2C5%2C4%5D%2Cnull%2C%5B1%2C1%2C1%5D%2C1%5D%22%2Cnull%2C%22generic%22%5D%5D%5D"
-        response = make_post_request(f"{self.API}batchexecute", payload)
+        response = make_post_request(f"{GOOGLE_FLIGHTS_API_URL}batchexecute", payload)
         data = json.loads(response)
         city_data = json.loads(data[0][2])[0][0][0]
         return namedtuple('City', ['name', 'code', 'iata'])(city_data[2], city_data[4].split("/")[-1], city_data[5])
