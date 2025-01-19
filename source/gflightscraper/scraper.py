@@ -29,6 +29,30 @@ class Scraper:
         date_ranges = calculate_date_ranges(dates[0], dates[1])
         self.origin = self.__get_city_by_iata(origin_iata)
         self.destination = self.__get_city_by_iata(destination_iata)
+        for start, end in date_ranges:
+            payload = f"f.req=%5Bnull%2C%22%5Bnull%2C%5Bnull%2Cnull%2C1%2Cnull%2C%5B%5D%2C1%2C%5B{passengers}%2C0%2C0%2C0%5D%2Cnull%2Cnull%2Cnull%2Cnull%2Cnull%2Cnull%2C%5B%5B%5B%5B%5B%5C%22%2Fm%2F{self.origin.code}%5C%22%2C4%5D%5D%5D%2C%5B%5B%5B%5C%22%2Fm%2F{self.destination.code}%5C%22%2C4%5D%5D%5D%2Cnull%2C0%5D%2C%5B%5B%5B%5B%5C%22%2Fm%2F{self.destination.code}%5C%22%2C4%5D%5D%5D%2C%5B%5B%5B%5C%22%2Fm%2F{self.origin.code}%5C%22%2C4%5D%5D%5D%2Cnull%2C0%5D%5D%2Cnull%2Cnull%2Cnull%2C1%5D%2C%5B%5C%22{start}%5C%22%2C%5C%22{end}%5C%22%5D%2Cnull%2C%5B{duration}%2C{duration}%5D%5D%22%5D"
+            response = make_post_request(f"{self.API}travel.frontend.flights.FlightsFrontendService/GetCalendarPicker", payload)
+            self.__parse_flights(response, duration, passengers)
+
+        self.list.sort(key=lambda x: x.price)
+        if limit > 0:
+            self.list = self.list[:limit]
+        return self.list
+    
+    def __parse_flights(self, response, duration, passengers):
+        data = json.loads(response)
+        for item in data:
+            if "wrb.fr" not in item:
+                continue
+            nested_json = json.loads(item[2])
+            if len(nested_json) == 1:
+                continue
+            for entry in nested_json[1]:
+                if entry[2] is None:
+                    continue
+                price = entry[2][0][1]
+                self.list.append(self.flight(self.origin.name, self.destination.name, entry[0], entry[1], price, duration, passengers))
+
 
     def __get_city_by_iata(self, iata_or_name):
         """
