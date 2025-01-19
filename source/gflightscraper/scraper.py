@@ -1,7 +1,7 @@
 import json
 from collections import namedtuple
-from utils.api_utils import make_post_request
-from utils.date_utils import calculate_date_ranges
+from gflightscraper.utils.api_utils import make_post_request
+from gflightscraper.utils.date_utils import calculate_date_ranges
 from unidecode import unidecode
 
 class Scraper:
