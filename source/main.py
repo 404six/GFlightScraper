@@ -37,7 +37,18 @@ def run():
 
     # Print the resulting flight options
     for f in flights.list:
-        print(f)
+        departures = flights.get_departures(f.date_from, f.date_to, f.passengers)
+
+        for departure in departures:
+            if departure.stops_list:  # check if there are stops
+                stops_details = "\n".join(
+                    f"**{departure.airline}** - From **{stop.from_}** to **{stop.to_}**: Departure **{stop.departure}**, Arrival **{stop.arrival}**"
+                    for stop in departure.stops_list
+                )
+                stops_message = f"**Stops** ({departure.stops_count}):\n{stops_details}\n"
+            else:
+                stops_message = "**Stops**: None (Direct flight)\n"
+        print(f"{f}\n{stops_message}")
 
 if __name__ == "__main__":
     run()
